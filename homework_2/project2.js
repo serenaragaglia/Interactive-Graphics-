@@ -22,7 +22,9 @@ function GetTransform( positionX, positionY, rotation, scale )
 						      0, 1, positionY,
 						      0, 0, 1];
 	//Call to ApplyTrabsform to have the transormations in the requested order
-	return ApplyTransform(ApplyTransform(scale_matrix, rotation_matrix), translation_matrix);
+	scale_rot = ApplyTransform(scale_matrix, rotation_matrix);
+	final = ApplyTransform(scale_rot, translation_matrix);
+	return final;
 }
 
 // Returns a 3x3 transformation matrix as an array of 9 values in column-major order.
