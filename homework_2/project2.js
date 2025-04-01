@@ -21,10 +21,9 @@ function GetTransform( positionX, positionY, rotation, scale )
 	let translation_matrix = [1, 0, positionX,
 						      0, 1, positionY,
 						      0, 0, 1];
-	//Call to ApplyTrabsform to have the transormations in the requested order
-	scale_rot = ApplyTransform(scale_matrix, rotation_matrix);
-	final = ApplyTransform(scale_rot, translation_matrix);
-	return final;
+	//Call to ApplyTrabsform to have the transformations in the requested order
+	transformation = ApplyTransform(ApplyTransform(scale_matrix, rotation_matrix), translation_matrix) //rotation and scaling can be interexchanged, the problem is with the translation
+	return transformation;
 }
 
 // Returns a 3x3 transformation matrix as an array of 9 values in column-major order.
