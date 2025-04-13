@@ -38,8 +38,42 @@ function GetModelViewProjection( projectionMatrix, translationX, translationY, t
 	return mvp;
 }
 
+//the shaders have to be written as strings, so they are called as variables
+//in order to do the swapping it's neccessary to use another variable so we can keep the original position of the verteces and still manipulate axes position
+const vertexShader = `
+	attribute vec3 vpos;
+	attribute vec2 tpos;
+	uniform mat4 mvp;
+	uniform bool swap;
+	varying vec2 texCoord;
+
+	void main() {
+		vec3 pos = vpos;
+		if (swap) {
+			pos = vec3(pos.x, pos.z, pos.y);
+		}
+		gl_Position = mvp * vec4(pos, 1.0);
+		texCoord = tpos;
+	}
+`;
+
+const fragmentShader = `
+	precision mediump float;
+	uniform bool showTex;
+	uniform sampler2D tex;
+	varying vec2 texCoord;
+
+	void main() {
+		if (showTex) {
+			gl_FragColor = texture2D(tex, texCoord);
+		} else {
+			gl_FragColor = gl_FragColor = vec4(1,gl_FragCoord.z*gl_FragCoord.z,0,1);
+		}
+	}
+`;
 
 // [TO-DO] Complete the implementation of the following class.
+
 
 class MeshDrawer
 {
@@ -47,19 +81,25 @@ class MeshDrawer
 	constructor()
 	{
 		// [TO-DO] initializations
-		this.prog = gl.InitShaderProgram(vs, fs);
+		this.prog = InitShaderProgram(vertexShader, fragmentShader);  //call to the function in the project4.html file to create the shaders
 
-		this.swapAxes = gl.getUniformLocation(this.prog, 'swap');  //takes the boolean value ofthe variable swap
-		this.showTex = gl.getUniformLocation(this.prog, 'showTex');
-		this.mvp = gl.getUniformLocation(this.prog, 'mvp');
 		//get texture and verteces position from the shaders
 		this.vpos = gl.getAttribLocation(this.prog, 'vpos');
 		this.tpos = gl.getAttribLocation(this.prog, 'tpos');
 
+		this.swapAxes = gl.getUniformLocation(this.prog, 'swap');  //takes the boolean value ofthe variable swap
+		this.showTex = gl.getUniformLocation(this.prog, 'showTex');
+		this.mvp = gl.getUniformLocation(this.prog, 'mvp');
+
 		gl.useProgram(this.prog);
 		
+		//set default values
+		gl.uniform1i(this.showTex, false);
+		gl.uniform1i(this.swap, false);
+
 		this.texture = gl.createTexture();
-		this.sampler.gl.getUniformLocation(this.prog, 'tex');
+		this.sampler = gl.getUniformLocation(this.prog, 'tex');
+
 		this.texBuffer = gl.createBuffer();
 
 		this.vertexBuffer = gl.createBuffer();
@@ -149,41 +189,7 @@ class MeshDrawer
 		gl.useProgram(this.prog);
 		gl.uniform1i(this.showTex, show);
 	}
-	
 
 }
 
-//the shaders have to be written as strings, so they are called as variables
-var vs = `
-attribute vec3 vpos;
-attribute vec2 tpos;
-uniform mat4 mvp;
-varying vec2 texCoord;
 
-void main(){
-	gl_Position = mvp * vec4(vpos,1);
-	texCoord = tpos;
-}`
-
-var fs = `
-	uniform sampler2D tex;
-	varying vec2 texCoord; 
-	uniform bool showTex;
-
-	void main(){ 
-		if(showTex){
-		gl_FragColor = texture2D(tex, texCoord);
-		}else{
-		gl_FragColor = vec4(1,gl_FragCoord.z*gl_FragCoord.z,0,1);}
-	}
-
-
-
-
-
-
-
-
-
-
-`
