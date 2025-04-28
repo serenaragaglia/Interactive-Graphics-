@@ -46,6 +46,8 @@ const vertexShader = `
 	uniform mat4 mvp;
 	uniform bool swap;
 	varying vec2 texCoord;
+	varying vec3 normalsPos; 
+	variyng vec3 pointPos;
 
 	void main() {
 		vec3 pos = vpos;
@@ -53,6 +55,8 @@ const vertexShader = `
 			pos = vec3(pos.x, pos.z, pos.y);
 		}
 		gl_Position = mvp * vec4(pos, 1.0);
+		normalPos = normalize(mvn * normpos);
+		pointPos = mv * vpos;
 		texCoord = tpos;
 	}
 `;
@@ -98,7 +102,7 @@ class MeshDrawer
 		this.lightDir = gl.getUniformLocation(this.prog, 'lightDir' );
 
 		//alpha value
-		this.shininess = gl.getUniformLocation(this.prog, 'shininess');
+		this.shininess = gl.getUniformLocation(this.prog, 'shininess'); //float
 
 		gl.useProgram(this.prog);
 		
@@ -211,7 +215,7 @@ class MeshDrawer
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the light direction.
 		gl.useProgram(this.prog);
-		gl.uniform1i(this.lightDir, x, y, z); 
+		gl.uniform3i(this.lightDir, x, y, z); 
 
 	}
 	
@@ -220,6 +224,6 @@ class MeshDrawer
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the shininess.
 		gl.useProgram(this.prog);
-		gl.uniform1i(this.shininess, shininess);
+		gl.uniform1f(this.shininess, shininess); 
 	}
 }
