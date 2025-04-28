@@ -38,25 +38,30 @@ function GetModelViewMatrix( translationX, translationY, translationZ, rotationX
 }
 
 const vertexShader = `
+	precision mediump float;
+
 	attribute vec3 vpos;
 	attribute vec2 tpos;
-	attribute vec3 normpos;
+	attribute vec3 npos;
 	uniform mat3 mvn;
 	uniform mat4 mv;
 	uniform mat4 mvp;
 	uniform bool swap;
 	varying vec2 texCoord;
-	varying vec3 normalsPos; 
-	variyng vec3 pointPos;
+	varying vec3 cameraPos;
+	varying vec3 normalPos;
 
 	void main() {
 		vec3 pos = vpos;
+		vec3 normAux = npos;
+
 		if (swap) {
 			pos = vec3(pos.x, pos.z, pos.y);
+			normAux = vec3(normalPos.x, normalPos.y, normalPos.z);
 		}
 		gl_Position = mvp * vec4(pos, 1.0);
-		normalPos = normalize(mvn * normpos);
-		pointPos = mv * vpos;
+		normalPos = normalize(mvn * normalAux);
+		cameraPos = vec3 ( mv * vec4(position, 1.0));
 		texCoord = tpos;
 	}
 `;
@@ -65,7 +70,13 @@ const fragmentShader = `
 	precision mediump float;
 	uniform bool showTex;
 	uniform sampler2D tex;
+
+	uniform vec3 lightDir;
+	unfirom float shininess;
+
 	varying vec2 texCoord;
+	varying vec3 cameraPos;
+	varying vec3 normalPos;
 
 	void main() {
 		if (showTex) {
@@ -89,7 +100,7 @@ class MeshDrawer
 		//get texture and verteces position from the shaders
 		this.vpos = gl.getAttribLocation(this.prog, 'vpos');
 		this.tpos = gl.getAttribLocation(this.prog, 'tpos');
-		this.normpos = gl.getAttribLocation(this.prog, 'normpos');
+		this.npos = gl.getAttribLocation(this.prog, 'npos');
 
 		this.mv = gl.getUniformLocation(this.prog, 'mv');
 		this.mvp = gl.getUniformLocation(this.prog, 'mvp');
@@ -176,8 +187,8 @@ class MeshDrawer
 		gl.enableVertexAttribArray(this.tpos);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
-		gl.vertexAttribPointer(this.normpos, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(this.normpos);
+		gl.vertexAttribPointer(this.npos, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(this.npos);
 
 		gl.drawArrays( gl.TRIANGLES, 0, this.numTriangles );
 	}
