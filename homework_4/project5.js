@@ -72,7 +72,6 @@ const fragmentShader = `
 	}
 `;
 
-
 // [TO-DO] Complete the implementation of the following class.
 
 class MeshDrawer
