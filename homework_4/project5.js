@@ -79,11 +79,23 @@ const fragmentShader = `
 	varying vec3 normalPos;
 
 	void main() {
+		vec3 n = normalize(normalPos);
+		vec3 l = normalize(lightDir);
+		vec3 v = normalize(-cameraPos);
+		vec3 halfDir = normalize(l + v); 
+
+		float spec = pow(mad(dot(n, halfDir), 0.0), shininess);
+
 		if (showTex) {
-			gl_FragColor = texture2D(tex, texCoord);
+			color_tex = texture2D(tex, texCoord);
 		} else {
-			gl_FragColor = gl_FragColor = vec4(1,gl_FragCoord.z*gl_FragCoord.z,0,1);
+			color_tex = gl_FragColor = vec4(1,gl_FragCoord.z*gl_FragCoord.z,0,1);
 		}
+		
+		vec3 color = color_tex * vec3(spec);
+		gl_fragColor = vec4(color, 1.0);
+
+
 	}
 `;
 
