@@ -33,7 +33,7 @@ function GetModelViewMatrix( translationX, translationY, translationZ, rotationX
 	];
 //the order has to be rotation -  translation - projection
 	var rot = MatrixMult(rotX, rotY);
-	var mv = MatrixMult(trans, rot);
+	var mv = MatrixMult(trans, rot );
 	return mv;
 }
 
@@ -57,11 +57,13 @@ const vertexShader = `
 
 		if (swap) {
 			pos = vec3(pos.x, pos.z, pos.y);
-			normAux = vec3(normalPos.x, normalPos.y, normalPos.z);
+			normAux = vec3(normAux.x, normAux.z, normAux.y);
 		}
 		gl_Position = mvp * vec4(pos, 1.0);
-		normalPos = normalize(mvn * normalAux);
-		cameraPos = vec3 ( mv * vec4(position, 1.0));
+	
+		cameraPos = vec3 ( mv * vec4(pos, 1.0));
+		normalPos = normalize(mvn * normAux);
+		
 		texCoord = tpos;
 	}
 `;
@@ -72,7 +74,7 @@ const fragmentShader = `
 	uniform sampler2D tex;
 
 	uniform vec3 lightDir;
-	unfirom float shininess;
+	uniform float shininess;
 
 	varying vec2 texCoord;
 	varying vec3 cameraPos;
@@ -84,18 +86,19 @@ const fragmentShader = `
 		vec3 v = normalize(-cameraPos);
 		vec3 halfDir = normalize(l + v); 
 
-		float spec = pow(mad(dot(n, halfDir), 0.0), shininess);
-
+		float diffuse = max(dot(n,l), 0.0);
+		float specular = pow(max(dot(n, halfDir), 0.0), shininess);
+		
+		vec3 k_d;
 		if (showTex) {
-			color_tex = texture2D(tex, texCoord);
+			k_d = texture2D(tex, texCoord).rgb;
 		} else {
-			color_tex = gl_FragColor = vec4(1,gl_FragCoord.z*gl_FragCoord.z,0,1);
+			k_d = vec3(1.0, 1.0, 1.0);
 		}
 		
-		vec3 color = color_tex * vec3(spec);
-		gl_fragColor = vec4(color, 1.0);
-
-
+		vec3 k_s = vec3(1.0, 1.0, 1.0);
+		vec3 color = (k_d * diffuse) + (k_s * specular);
+		gl_FragColor = vec4(color, 1.0);
 	}
 `;
 
@@ -131,7 +134,7 @@ class MeshDrawer
 		
 		//set default values
 		gl.uniform1i(this.showTex, false);
-		gl.uniform1i(this.swap, false);
+		gl.uniform1i(this.swapAxes, false);
 
 		this.texture = gl.createTexture();
 		this.sampler = gl.getUniformLocation(this.prog, 'tex');
@@ -238,7 +241,7 @@ class MeshDrawer
 	{
 		// [TO-DO] set the uniform parameter(s) of the fragment shader to specify the light direction.
 		gl.useProgram(this.prog);
-		gl.uniform3i(this.lightDir, x, y, z); 
+		gl.uniform3f(this.lightDir, x, y, z); 
 
 	}
 	
