@@ -59,11 +59,10 @@ const vertexShader = `
 			pos = vec3(pos.x, pos.z, pos.y);
 			normAux = vec3(normAux.x, normAux.z, normAux.y);
 		}
-		gl_Position = mvp * vec4(pos, 1.0);
-	
+
 		cameraPos = vec3 ( mv * vec4(pos, 1.0));
 		normalPos = normalize(mvn * normAux);
-		
+		gl_Position = mvp * vec4(pos, 1.0);
 		texCoord = tpos;
 	}
 `;
@@ -83,7 +82,7 @@ const fragmentShader = `
 	void main() {
 		vec3 n = normalize(normalPos);
 		vec3 l = normalize(lightDir);
-		vec3 v = normalize(-cameraPos);
+		vec3 v = -normalize(cameraPos);
 		vec3 halfDir = normalize(l + v); 
 
 		float diffuse = max(dot(n,l), 0.0);
@@ -189,6 +188,7 @@ class MeshDrawer
 	draw( matrixMVP, matrixMV, matrixNormal )
 	{
 		// [TO-DO] Complete the WebGL initializations before drawing
+		gl.useProgram(this.prog);
 		gl.uniformMatrix4fv(this.mv, false, matrixMV)
 		gl.uniformMatrix4fv(this.mvp, false, matrixMVP)
 		gl.uniformMatrix3fv(this.mvn, false, matrixNormal)
