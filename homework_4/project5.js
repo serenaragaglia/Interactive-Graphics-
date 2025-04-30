@@ -96,7 +96,8 @@ const fragmentShader = `
 		}
 		
 		vec3 k_s = vec3(1.0, 1.0, 1.0);
-		vec3 color = (k_d * diffuse) + (k_s * specular);
+		vec3 ambient = 0.1 * k_d;
+		vec3 color = (k_d * diffuse) + (k_s * specular) + ambient;
 		gl_FragColor = vec4(color, 1.0);
 	}
 `;
