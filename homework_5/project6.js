@@ -38,13 +38,13 @@ bool IntersectRay( inout HitInfo hit, Ray ray );
 // Shades the given point and returns the computed color.
 vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 {
-	vec3 color = vec3(0,0,0);
+	vec3 color = vec3(0.0,0.0,0.0);
 	for ( int i=0; i<NUM_LIGHTS; ++i ) {
 		// TO-DO: Check for shadows
 		HitInfo hit;
 		vec3 omega_out = normalize(lights[i].position - position);
 		Ray shadow_ray;
-		shadow_ray.pos = position + normal + 0.001; 
+		shadow_ray.pos = position +  0.001 * normal; 
 		shadow_ray.dir = omega_out;
 		
 		// TO-DO: If not shadowed, perform shading using the Blinn model
@@ -57,7 +57,7 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 			float s = pow(max(dot(normal, h), 0.0), mtl.n);
 			vec3 specular = lights[i].intensity * mtl.k_s * s;
 
-			color = color + diffuse + specular;
+			color += diffuse + specular;
 		}
 	
 	}
@@ -81,14 +81,14 @@ bool IntersectRay( inout HitInfo hit, Ray ray )
 		//now we find the quadratic polynomial coefficients obtained by substituting the ray info into the sphere equation
 		float a = dot(ray.dir , ray.dir);
 		float b = 2.0 * (dot(ray.dir, r_c_s));
-		float c = dot(r_c_s , r_c_s);
+		float c = (dot(r_c_s , r_c_s) - sph.radius * sph.radius);
 
 		float delta = (b * b) - (4.0 * a * c);
 
 		if (delta > 0.0){
 			float t_1 = (-b - sqrt(delta)) / (2.0*a);
-			float t_2 = (-b - sqrt(delta)) / (2.0*a);
-			float t = -1.0;
+			float t_2 = (-b + sqrt(delta)) / (2.0*a);
+			float t;
 			if (t_1 > 0.0 && t_2 > 0.0) {
 				t = min(t_1, t_2);
 			} else if (t_1 > 0.0) {
@@ -97,10 +97,10 @@ bool IntersectRay( inout HitInfo hit, Ray ray )
 				t = t_2;
 			}
 
-			if (t > 0.001 && t < hit.t){
+			if (t > 0.0 && t < hit.t){
 				foundHit = true;
 				hit.t = t;
-				hit.position = ray.pos + ray.dir * t; 
+				hit.position = ray.pos + t * ray.dir; 
 				hit.normal = normalize(hit.position - sph.center);
 				hit.mtl = sph.mtl;	
 			}
@@ -128,8 +128,8 @@ vec4 RayTracer( Ray ray )
 			HitInfo h;	// reflection hit info
 			
 			// TO-DO: Initialize the reflection ray
-			r.pos = hit.position + hit.normal * 0.001;
-			r.dir = normalize(reflect(-view, hit.normal)); //the function returns the direction in which the ray should bounce
+			r.pos = hit.position + 0.001*hit.normal;
+			r.dir = reflect(-view, hit.normal); //the function returns the direction in which the ray should bounce
 			
 			if ( IntersectRay( h, r ) ) {
 				// TO-DO: Hit found, so shade the hit point
