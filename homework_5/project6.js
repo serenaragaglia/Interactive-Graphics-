@@ -44,7 +44,7 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 		HitInfo hit;
 		vec3 omega_out = normalize(lights[i].position - position);
 		Ray shadow_ray;
-		shadow_ray.pos = position +  0.001 * normal; 
+		shadow_ray.pos = position +  0.001 * omega_out; 
 		shadow_ray.dir = omega_out;
 		
 		// TO-DO: If not shadowed, perform shading using the Blinn model
@@ -56,7 +56,6 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 			vec3 h = normalize(omega_out + view);
 			float s = pow(max(dot(normal, h), 0.0), mtl.n);
 			vec3 specular = lights[i].intensity * mtl.k_s * s;
-
 			color += diffuse + specular;
 		}
 	
@@ -85,17 +84,9 @@ bool IntersectRay( inout HitInfo hit, Ray ray )
 
 		float delta = (b * b) - (4.0 * a * c);
 
-		if (delta > 0.0){
+		if (delta >= 0.0){
 			float t_1 = (-b - sqrt(delta)) / (2.0*a);
-			float t_2 = (-b + sqrt(delta)) / (2.0*a);
-			float t;
-			if (t_1 > 0.0 && t_2 > 0.0) {
-				t = min(t_1, t_2);
-			} else if (t_1 > 0.0) {
-				t = t_1;
-			} else if (t_2 > 0.0) {
-				t = t_2;
-			}
+			float t = t_1;
 
 			if (t > 0.0 && t < hit.t){
 				foundHit = true;
@@ -128,17 +119,17 @@ vec4 RayTracer( Ray ray )
 			HitInfo h;	// reflection hit info
 			
 			// TO-DO: Initialize the reflection ray
-			r.pos = hit.position + 0.001*hit.normal;
+			r.pos = hit.position + 0.001 * hit.normal;
 			r.dir = reflect(-view, hit.normal); //the function returns the direction in which the ray should bounce
 			
 			if ( IntersectRay( h, r ) ) {
 				// TO-DO: Hit found, so shade the hit point
 				// TO-DO: Update the loop variables for tracing the next reflection ray
-				vec3 new_view = normalize(-r.dir);
-				clr += k_s * Shade(h.mtl, h.position, h.normal, new_view);
+				view = normalize(-r.dir);
+				clr += k_s * Shade(h.mtl, h.position, h.normal, view);
 				k_s = k_s * h.mtl.k_s;
 				hit = h;
-				view = new_view;
+				
 			} else {
 				// The refleciton ray did not intersect with anything,
 				// so we are using the environment color
