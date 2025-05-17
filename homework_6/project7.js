@@ -198,8 +198,27 @@ class MeshDrawer
 function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, particleMass, gravity, restitution )
 {
 	var forces = Array( positions.length ); // The total for per particle
-
+	var f_d = Array(springs.lenght);
+	var f_s = Array(springs.lenght);
+	var a = Array();
+	let i,j;
 	// [TO-DO] Compute the total force of each particle
+	for( i = 0 ; i <= positions.length ; ++i){
+		f[i] = f[i].add(gravity.mul(particleMass[i]));
+	}
+	for( i = 0 ; i <= positions.length ; ++i){
+		for( j = 0 ; j <= positions.length ; ++j){
+			for(let k = 0; k <= springs.lenght; ++k){				
+				var l = positions[j].len() - positions[i].len();
+				var d = (positions[j].sub(positions[i])).div(l); 
+				f_s[k] =d.mul(stiffness * (l - restitution));
+				var l_d = d.dot((velocities[j].sub(velocities[i])));
+				f_d[k] = d.mul(damping * l_d);
+			}
+			f[i] = f[i].add(f_s[i].add(f_d[i]));
+
+		}
+	}
 	
 	// [TO-DO] Update positions and velocities
 	
