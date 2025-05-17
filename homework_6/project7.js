@@ -263,38 +263,63 @@ class MeshDrawer
 function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, particleMass, gravity, restitution )
 {
 	var forces = Array( positions.length ); // The total for per particle
-	var f_d = Array(springs.lenght);
-	var f_s = Array(springs.lenght);
-	var a = Array();
-	let i,j;
+	var a, h;
+	let i;
 	// [TO-DO] Compute the total force of each particle
-	for( i = 0 ; i <= positions.length ; ++i){
-		forces[i] = (gravity.mul(particleMass[i]));
+	for( i = 0 ; i < positions.length ; ++i){
+		forces[i] = gravity.mul(particleMass);
 	}
 
-			for(let i = 0; i <= springs.lenght; ++i){				
-				var l = positions[springs[i].p1].sub(positions[springs[i].p0]).len();
-				var d = positions[springs[i].p1].sub(positions[springs[i].p0]).unit(); 
-				
-				//spring force
-				forces[springs[i].p1].inc(d.mul(stiffness * (l - springs[i].rest)));
-				forces[springs[i].p0].inc(d.mul(stiffness * (l - springs[i].rest)));
-
-				var l_d_y = (velocities[springs[i].p1].sub(velocities[springs[i].p0])).dot(d);
-				var l_d_x = (velocities[springs[i].p0].sub(velocities[springs[i].p1])).dot(d);
-
-				//damping force 
-				forces[springs[i].p1].inc(d.scale(-damping * l_d_y));
-				forces[springs[i].p0].inc(d.scale(-damping * l_d_x));
-
-			}
-
+	for(i = 0; i < springs.lenght; ++i){				
+		var l = positions[springs[i].p1].sub(positions[springs[i].p0]).len();
+		var d = positions[springs[i].p1].sub(positions[springs[i].p0]).unit(); 
 		
-	
-	
+		//spring force
+		forces[springs[i].p1].inc(d.mul(stiffness * (l - springs[i].rest)));
+		forces[springs[i].p0].inc(d.mul(stiffness * (l - springs[i].rest)));
+
+		var l_d_y = (velocities[springs[i].p1].sub(velocities[springs[i].p0])).dot(d);
+		var l_d_x = (velocities[springs[i].p0].sub(velocities[springs[i].p1])).dot(d);
+
+		//damping force 
+		forces[springs[i].p1].inc(d.mul(-damping * l_d_y));
+		forces[springs[i].p0].inc(d.mul(-damping * l_d_x));
+	}
+
 	// [TO-DO] Update positions and velocities
+	for(i = 0 ; i < positions.length ; ++i){
+		a = forces[i].div(particleMass);
+		velocities[i] = velocities[i].add(a.mult(dt));
+		positions[i] = positions[i].add(velocities[i].mult(dt));
+	}
 	
 	// [TO-DO] Handle collisions
-	
+	for(i = 0 ; i < positions.length ; ++i){
+		if(positions[i].x > 1){
+			positions[i].x = 1;
+			if(velocities[i].x < 0){
+				velocities[i].x = velocities[i].x * -restitution;
+			}
+		}
+		else if(positions[i].x < -1){
+			positions[i].x = -1;
+			if(velocities[i].x < 0){
+				velocities[i].x = velocities[i].x * -restitution;
+			}
+		}
+
+		if(positions[i].y > 1){
+			positions[i].y = 1;
+			if(velocities[i].y < 0){
+				velocities[i].y = velocities[i].y * -restitution;
+			}
+		}
+		else if(positions[i].y < -1){
+			positions[i].y = -1;
+			if(velocities[i].y < 0){
+				velocities[i].y = velocities[i].y * -restitution;
+			}
+		}
+	}
 }
 
