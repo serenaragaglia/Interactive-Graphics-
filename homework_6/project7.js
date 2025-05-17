@@ -37,6 +37,71 @@ function GetModelViewMatrix( translationX, translationY, translationZ, rotationX
 	return mv;
 }
 
+//shaders
+const vertexShader = `
+	precision mediump float;
+
+	attribute vec3 vpos;
+	attribute vec2 tpos;
+	attribute vec3 npos;
+	uniform mat3 mvn;
+	uniform mat4 mv;
+	uniform mat4 mvp;
+	uniform bool swap;
+	varying vec2 texCoord;
+	varying vec3 cameraPos;
+	varying vec3 normalPos;
+
+	void main() {
+		vec3 pos = vpos;
+		vec3 normAux = npos;
+
+		if (swap) {
+			pos = vec3(pos.x, pos.z, pos.y);
+			normAux = vec3(normAux.x, normAux.z, normAux.y);
+		}
+
+		cameraPos = vec3 ( mv * vec4(pos, 1.0));
+		normalPos = normalize(mvn * normAux);
+		gl_Position = mvp * vec4(pos, 1.0);
+		texCoord = tpos;
+	}
+`;
+
+const fragmentShader = `
+	precision mediump float;
+	uniform bool showTex;
+	uniform sampler2D tex;
+
+	uniform vec3 lightDir;
+	uniform float shininess;
+
+	varying vec2 texCoord;
+	varying vec3 cameraPos;
+	varying vec3 normalPos;
+
+	void main() {
+		vec3 n = normalize(normalPos);
+		vec3 l = normalize(lightDir);
+		vec3 v = -normalize(cameraPos);
+		vec3 halfDir = normalize(l + v); 
+
+		float diffuse = max(dot(n,l), 0.0);
+		float specular = pow(max(dot(n, halfDir), 0.0), shininess);
+		
+		vec3 k_d;
+		if (showTex) {
+			k_d = texture2D(tex, texCoord).rgb;
+		} else {
+			k_d = vec3(1.0, 1.0, 1.0);
+		}
+		
+		vec3 k_s = vec3(1.0, 1.0, 1.0);
+		vec3 ambient = 0.1 * k_d;
+		vec3 color = (k_d * diffuse) + (k_s * specular) + ambient;
+		gl_FragColor = vec4(color, 1.0);
+	}
+`;
 
 // [TO-DO] Complete the implementation of the following class.
 
@@ -204,21 +269,28 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 	let i,j;
 	// [TO-DO] Compute the total force of each particle
 	for( i = 0 ; i <= positions.length ; ++i){
-		f[i] = f[i].add(gravity.mul(particleMass[i]));
+		forces[i] = (gravity.mul(particleMass[i]));
 	}
-	for( i = 0 ; i <= positions.length ; ++i){
-		for( j = 0 ; j <= positions.length ; ++j){
-			for(let k = 0; k <= springs.lenght; ++k){				
-				var l = positions[j].len() - positions[i].len();
-				var d = (positions[j].sub(positions[i])).div(l); 
-				f_s[k] =d.mul(stiffness * (l - restitution));
-				var l_d = d.dot((velocities[j].sub(velocities[i])));
-				f_d[k] = d.mul(damping * l_d);
-			}
-			f[i] = f[i].add(f_s[i].add(f_d[i]));
 
-		}
-	}
+			for(let i = 0; i <= springs.lenght; ++i){				
+				var l = positions[springs[i].p1].sub(positions[springs[i].p0]).len();
+				var d = positions[springs[i].p1].sub(positions[springs[i].p0]).unit(); 
+				
+				//spring force
+				forces[springs[i].p1].inc(d.mul(stiffness * (l - springs[i].rest)));
+				forces[springs[i].p0].inc(d.mul(stiffness * (l - springs[i].rest)));
+
+				var l_d_y = (velocities[springs[i].p1].sub(velocities[springs[i].p0])).dot(d);
+				var l_d_x = (velocities[springs[i].p0].sub(velocities[springs[i].p1])).dot(d);
+
+				//damping force 
+				forces[springs[i].p1].inc(d.scale(-damping * l_d_y));
+				forces[springs[i].p0].inc(d.scale(-damping * l_d_x));
+
+			}
+
+		
+	
 	
 	// [TO-DO] Update positions and velocities
 	
