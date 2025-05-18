@@ -263,61 +263,83 @@ class MeshDrawer
 function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, particleMass, gravity, restitution )
 {
 	var forces = Array( positions.length ); // The total for per particle
-	var a, h;
+	var a;
 	let i;
 	// [TO-DO] Compute the total force of each particle
 	for( i = 0 ; i < positions.length ; ++i){
-		forces[i] = gravity.mul(particleMass);
+		forces[i] = gravity.copy().mul(particleMass);
 	}
 
-	for(i = 0; i < springs.lenght; ++i){				
-		var l = positions[springs[i].p1].sub(positions[springs[i].p0]).len();
-		var d = positions[springs[i].p1].sub(positions[springs[i].p0]).unit(); 
+	for(i = 0; i < springs.lenght; ++i){	
+
+		const p0 = positions[springs[i].p0];
+		const p1 = positions[springs[i].p1];
+		const rest = springs[i].rest;
+		const v0 = velocities[springs[i].p0]
+		const v1 = velocities[springs[i].p1];
+
+		var distance = (p1.sub(p0));
+		var lenght = distance.len();
+		var direction = distance.unit(); 
 		
 		//spring force
-		forces[springs[i].p1].inc(d.mul(stiffness * (l - springs[i].rest)));
-		forces[springs[i].p0].inc(d.mul(stiffness * (l - springs[i].rest)));
+		const spring_force = direction.copy().mul((lenght - rest)*stiffness);
 
-		var l_d_y = (velocities[springs[i].p1].sub(velocities[springs[i].p0])).dot(d);
-		var l_d_x = (velocities[springs[i].p0].sub(velocities[springs[i].p1])).dot(d);
-
+		var v_rel = (v1.sub(v0)).dot(direction);
 		//damping force 
-		forces[springs[i].p1].inc(d.mul(-damping * l_d_y));
-		forces[springs[i].p0].inc(d.mul(-damping * l_d_x));
+		const damping_force = direction.copy().mul(damping * v_rel);
+
+		forces[springs[i].p0].inc(spring_force.add(damping_force));
+		forces[springs[i].p1].dec(spring_force.add(damping_force));
 	}
 
 	// [TO-DO] Update positions and velocities
 	for(i = 0 ; i < positions.length ; ++i){
 		a = forces[i].div(particleMass);
-		velocities[i] = velocities[i].add(a.mult(dt));
-		positions[i] = positions[i].add(velocities[i].mult(dt));
+		velocities[i].inc(a.mul(dt));
+		positions[i].inc(velocities[i].mul(dt));
 	}
+
 	
 	// [TO-DO] Handle collisions
 	for(i = 0 ; i < positions.length ; ++i){
-		if(positions[i].x > 1){
-			positions[i].x = 1;
+//x
+		if(positions[i].x > 1.0){
+			positions[i].x = 1.0;
 			if(velocities[i].x < 0){
 				velocities[i].x = velocities[i].x * -restitution;
 			}
 		}
-		else if(positions[i].x < -1){
-			positions[i].x = -1;
+		else if(positions[i].x < -1.0){
+			positions[i].x = -1.0;
 			if(velocities[i].x < 0){
 				velocities[i].x = velocities[i].x * -restitution;
 			}
 		}
-
-		if(positions[i].y > 1){
-			positions[i].y = 1;
+//y
+		if(positions[i].y > 1.0){
+			positions[i].y = 1.0;
 			if(velocities[i].y < 0){
 				velocities[i].y = velocities[i].y * -restitution;
 			}
 		}
-		else if(positions[i].y < -1){
-			positions[i].y = -1;
+		else if(positions[i].y < -1.0){
+			positions[i].y = -1.0;
 			if(velocities[i].y < 0){
 				velocities[i].y = velocities[i].y * -restitution;
+			}
+		}
+//z
+		if(positions[i].z > 1.0){
+			positions[i].z = 1.0;
+			if(velocities[i].z < 0){
+				velocities[i].z = velocities[i].z * -restitution;
+			}
+		}
+		else if(positions[i].z < -1.0){
+			positions[i].z = -1.0;
+			if(velocities[i].z < 0){
+				velocities[i].z = velocities[i].z * -restitution;
 			}
 		}
 	}
