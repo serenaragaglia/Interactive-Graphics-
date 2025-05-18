@@ -270,13 +270,13 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 		forces[i] = gravity.copy().mul(particleMass);
 	}
 
-	for(i = 0; i < springs.lenght; ++i){	
+	for(let spring of springs){	
 
-		const p0 = positions[springs[i].p0];
-		const p1 = positions[springs[i].p1];
-		const rest = springs[i].rest;
-		const v0 = velocities[springs[i].p0]
-		const v1 = velocities[springs[i].p1];
+		const p0 = positions[spring.p0];
+		const p1 = positions[spring.p1];
+		const rest = spring.rest;
+		const v0 = velocities[spring.p0]
+		const v1 = velocities[spring.p1];
 
 		var distance = (p1.sub(p0));
 		var lenght = distance.len();
@@ -286,11 +286,12 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 		const spring_force = direction.copy().mul((lenght - rest)*stiffness);
 
 		var v_rel = (v1.sub(v0)).dot(direction);
+		
 		//damping force 
 		const damping_force = direction.copy().mul(damping * v_rel);
 
-		forces[springs[i].p0].inc(spring_force.add(damping_force));
-		forces[springs[i].p1].dec(spring_force.add(damping_force));
+		forces[spring.p0].inc(spring_force.add(damping_force));
+		forces[spring.p1].dec(spring_force.add(damping_force));
 	}
 
 	// [TO-DO] Update positions and velocities
@@ -300,7 +301,6 @@ function SimTimeStep( dt, positions, velocities, springs, stiffness, damping, pa
 		positions[i].inc(velocities[i].mul(dt));
 	}
 
-	
 	// [TO-DO] Handle collisions
 	for(i = 0 ; i < positions.length ; ++i){
 //x
