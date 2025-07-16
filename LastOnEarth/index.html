@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Last On Earth</title>
+  <link href="style.css" rel="stylesheet">
+
+</head>
+<body>
+  <script type="module">
+    import { init } from './js/main.js';
+    init();
+  </script>
+  <div id="startScreen" class="overlayScreen">
+    <h1>LastOnEarth</h1>
+    <p>Press ENTER to Start</p>
+  </div>
+
+  <div id="lifeContainer">
+    <div id="lifeBar"></div>
+  </div>  
+
+<div id="info">
+  <div id="kill" style="top:10px">Kill</div>
+</div>
+
+<div id="lowLifeBorder"></div>
+  <div id="levelTransition"></div>
+
+<div id="pickupHint">Press [E] to collect</div>
+
+<div id="crosshair"></div>
+
+<div id="minimap-container">
+  <div id="minimap-title">World Map</div>
+  <div id="minimap"></div>
+</div>
+
+
+<div id="win-screen" class="overlayScreen">
+  <div class="message">Victory 🏆</div>
+  <div class="message">You're a legend!</div>
+  <button onclick="restartGame()">Restart</button>
+</div>
+
+  <div id="gameFilter"></div>
+  <div id="gameOverScreen" class="overlayScreen">
+    <h1>GAME OVER</h1>
+    <p>You tried…</p>
+    <button onclick="restartGame()">Try Again</button>
+  </div>
+
+</body>
+</html>

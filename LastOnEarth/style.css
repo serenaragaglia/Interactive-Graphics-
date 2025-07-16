@@ -1,0 +1,243 @@
+body { margin: 0; overflow: hidden; }
+
+canvas { display: block; }
+
+.overlayScreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  z-index: 9999;
+}
+
+#startScreen, #gameOverScreen {
+  display: none;
+}
+
+.overlayScreen h1 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: #e74c3c;
+}
+
+.overlayScreen p {
+  font-size: 1.4rem;
+  margin-bottom: 2rem;
+  color: #ccc;
+}
+
+.overlayScreen button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background: #e74c3c;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+#lifeContainer{
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 200px;
+  height: 20px;
+  background-color: #555;
+  border: 2px solid #222;
+}
+
+#lifeBar{
+    height: 100%;
+    width: 100%;
+    background-color: #2ecc71;
+    transition: width 0.2s ease-in-out;
+}
+
+#lowLifeBorder {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 0, 0, 0) 40%,
+    rgba(255, 0, 0, 0.15) 60%,
+    rgba(255, 0, 0, 0.4) 85%,
+    rgba(255, 0, 0, 0.6) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  animation: pulseRed 2s infinite ease-in-out;
+  display: none;
+  mix-blend-mode: screen;
+  border-radius: 0;
+}
+
+@keyframes pulseRed {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+#info{
+    position: absolute;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    top: 10px;
+    left: 10px;
+    width: 220px;
+    height: 90px;
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 1px 1px 5px 3px rgba(0, 0, 0, 0.5);
+    flex-direction: column-reverse;
+}
+
+
+#gameFilter {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: grayscale(100%);
+  display: none;
+  z-index: 9998;
+}
+
+#pickupHint {
+  position: fixed;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-family: 'Orbitron', sans-serif;
+  display: none;
+  z-index: 1000;
+}
+
+#check{
+  position: absolute;
+  display:flex;
+  padding-right: 1%;
+  padding-top: 1%;
+}
+
+#win-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  z-index: 9999;
+  transition: opacity 1s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#win-screen.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+.message {
+  animation: fadeIn 1.2s ease forwards;
+  font-family: 'Orbitron', sans-serif;
+  
+}
+
+@keyframes fadeIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  margin-top: -4px;
+  background-color: red;
+  border-radius: 50%;
+  pointer-events: none;
+  display: none; 
+  z-index: 1000;
+}
+
+#levelTransition {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 30px 60px;
+  border-radius: 20px;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-in-out;
+  font-family: 'Orbitron', sans-serif;
+}
+
+#levelTransition.fade-in {
+  opacity: 1;
+}
+
+
+#minimap-container {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 250px  ;
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 1px 1px 5px 3px rgba(0, 0, 0, 0.5);
+}
+
+#minimap-title {
+  font-size: 18px;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+#minimap {
+  width: 200px;
+  height: 200px;
+  border: 2px solid rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto;
+}
